@@ -1,4 +1,4 @@
-module github.com/psi-incontrol.com/go-sprocket
+module github.com/psi-incontrol/go-sprocket
 
 go 1.14
 
