@@ -13,6 +13,7 @@ type Page struct {
 	ErrorMessagesJSON string
 	Data              interface{}
 	DataJSON          string
+	Roles             []string
 }
 
 //New ...
