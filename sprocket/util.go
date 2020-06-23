@@ -5,6 +5,7 @@ import (
 	"text/template"
 
 	rice "github.com/GeertJohan/go.rice"
+	"github.com/jmoiron/sqlx"
 )
 
 // GetTemplate ...
@@ -49,30 +50,30 @@ func GetTemplates(viewbox *rice.Box, filenames []string) (*template.Template, er
 }
 
 // TransactionQuery ...
-func TransactionQuery(db *sql.DB, query string, args ...interface{}) (sql.Result, error) {
+func TransactionQuery(db *sqlx.DB, query string, args ...interface{}) (sql.Result, error) {
 	err := db.Ping()
 	if err == nil {
-		tx, err := db.Begin()
-		if err == nil {
-			sqlResult, err := tx.Exec(query, args...)
-			if err != nil {
-				tx.Rollback()
-				return nil, err
-			}
-			tx.Commit()
-			return sqlResult, nil
-		}
+		tx := db.MustBegin()
+		//if err == nil {
+		sqlResult := tx.MustExec(query, args...)
+		//if err != nil {
+		//	tx.Rollback()
+		//	return nil, err
+		//}
+		tx.Commit()
+		return sqlResult, nil
+		//}
 	}
 	return nil, err
 }
 
 // TxTransactionQuery ...
-func TxTransactionQuery(tx *sql.Tx, query string, args ...interface{}) (sql.Result, error) {
-	sqlResult, err := tx.Exec(query, args...)
-	if err != nil {
-		tx.Rollback()
-		return nil, err
-	}
+func TxTransactionQuery(tx *sqlx.Tx, query string, args ...interface{}) (sql.Result, error) {
+	sqlResult := tx.MustExec(query, args...)
+	//if err != nil {
+	//tx.Rollback()
+	//return nil, err
+	//}
 	return sqlResult, nil
 }
 
