@@ -53,27 +53,27 @@ func GetTemplates(viewbox *rice.Box, filenames []string) (*template.Template, er
 func TransactionQuery(db *sqlx.DB, query string, args ...interface{}) (sql.Result, error) {
 	err := db.Ping()
 	if err == nil {
-		tx := db.MustBegin()
-		//if err == nil {
-		sqlResult := tx.MustExec(query, args...)
-		//if err != nil {
-		//	tx.Rollback()
-		//	return nil, err
-		//}
-		tx.Commit()
-		return sqlResult, nil
-		//}
+		tx, err := db.Beginx()
+		if err == nil {
+			sqlResult, err := tx.Exec(query, args...)
+			if err != nil {
+				tx.Rollback()
+				return nil, err
+			}
+			tx.Commit()
+			return sqlResult, nil
+		}
 	}
 	return nil, err
 }
 
 // TxTransactionQuery ...
 func TxTransactionQuery(tx *sqlx.Tx, query string, args ...interface{}) (sql.Result, error) {
-	sqlResult := tx.MustExec(query, args...)
-	//if err != nil {
-	//tx.Rollback()
-	//return nil, err
-	//}
+	sqlResult, err := tx.Exec(query, args...)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
 	return sqlResult, nil
 }
 
