@@ -8,7 +8,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-// GetTemplate ...
+//GetTemplate ...
 func GetTemplate(viewbox *rice.Box, base string, page string) (*template.Template, error) {
 	base, err := viewbox.String(base)
 	if err != nil {
@@ -32,7 +32,7 @@ func GetTemplate(viewbox *rice.Box, base string, page string) (*template.Templat
 	return x, nil
 }
 
-// GetTemplates ...
+//GetTemplates ...
 func GetTemplates(viewbox *rice.Box, filenames []string) (*template.Template, error) {
 	var x *template.Template
 	for i := 0; i < len(filenames); i++ {
@@ -49,7 +49,7 @@ func GetTemplates(viewbox *rice.Box, filenames []string) (*template.Template, er
 	return x, nil
 }
 
-// TransactionQuery ...
+//TransactionQuery ...
 func TransactionQuery(db *sqlx.DB, query string, args ...interface{}) (sql.Result, error) {
 	err := db.Ping()
 	if err == nil {
@@ -67,7 +67,7 @@ func TransactionQuery(db *sqlx.DB, query string, args ...interface{}) (sql.Resul
 	return nil, err
 }
 
-// TxTransactionQuery ...
+//TxTransactionQuery ...
 func TxTransactionQuery(tx *sqlx.Tx, query string, args ...interface{}) (sql.Result, error) {
 	sqlResult, err := tx.Exec(query, args...)
 	if err != nil {
@@ -77,12 +77,12 @@ func TxTransactionQuery(tx *sqlx.Tx, query string, args ...interface{}) (sql.Res
 	return sqlResult, nil
 }
 
-// RowScanWrap ...
+//RowScanWrap ...
 func RowScanWrap(r *sql.Row, dest ...interface{}) error {
 	return r.Scan(dest...)
 }
 
-// RowsScanWrap ...
+//RowsScanWrap ...
 func RowsScanWrap(r *sql.Rows, dest ...interface{}) error {
 	return r.Scan(dest...)
 }
