@@ -2,13 +2,23 @@ package sprocket
 
 import (
 	"database/sql"
+	"encoding/json"
+	"fmt"
+	"io"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"strconv"
+	"strings"
 	"text/template"
+	"time"
 
 	rice "github.com/GeertJohan/go.rice"
+	"github.com/go-zoo/bone"
 	"github.com/jmoiron/sqlx"
 )
 
-//GetTemplate ...
+// GetTemplate ...
 func GetTemplate(viewbox *rice.Box, base string, page string) (*template.Template, error) {
 	base, err := viewbox.String(base)
 	if err != nil {
@@ -32,7 +42,7 @@ func GetTemplate(viewbox *rice.Box, base string, page string) (*template.Templat
 	return x, nil
 }
 
-//GetTemplates ...
+// GetTemplates ...
 func GetTemplates(viewbox *rice.Box, filenames []string) (*template.Template, error) {
 	var x *template.Template
 	for i := 0; i < len(filenames); i++ {
@@ -49,7 +59,7 @@ func GetTemplates(viewbox *rice.Box, filenames []string) (*template.Template, er
 	return x, nil
 }
 
-//TransactionQuery ...
+// TransactionQuery ...
 func TransactionQuery(db *sqlx.DB, query string, args ...interface{}) (sql.Result, error) {
 	err := db.Ping()
 	if err == nil {
@@ -67,7 +77,7 @@ func TransactionQuery(db *sqlx.DB, query string, args ...interface{}) (sql.Resul
 	return nil, err
 }
 
-//TxTransactionQuery ...
+// TxTransactionQuery ...
 func TxTransactionQuery(tx *sqlx.Tx, query string, args ...interface{}) (sql.Result, error) {
 	sqlResult, err := tx.Exec(query, args...)
 	if err != nil {
@@ -77,12 +87,107 @@ func TxTransactionQuery(tx *sqlx.Tx, query string, args ...interface{}) (sql.Res
 	return sqlResult, nil
 }
 
-//RowScanWrap ...
+// RowScanWrap ...
 func RowScanWrap(r *sql.Row, dest ...interface{}) error {
 	return r.Scan(dest...)
 }
 
-//RowsScanWrap ...
+// RowsScanWrap ...
 func RowsScanWrap(r *sql.Rows, dest ...interface{}) error {
 	return r.Scan(dest...)
+}
+
+// RequestBodyToInterface ...
+func RequestBodyToInterface(r http.Request) (interface{}, error) {
+	return bodyToInterface(r.Body)
+}
+
+// ResponseBodyToInterface ...
+func ResponseBodyToInterface(r http.Request) (interface{}, error) {
+	return bodyToInterface(r.Body)
+}
+
+// RequestBodyToMap ...
+func RequestBodyToMap(r http.Request) (map[string]interface{}, error) {
+	delta, err := RequestBodyToInterface(r)
+	if err != nil {
+		return make(map[string]interface{}), err
+	}
+	return delta.(map[string]interface{}), nil
+}
+
+// ResponseBodyToMap ...
+func ResponseBodyToMap(r http.Request) (map[string]interface{}, error) {
+	delta, err := ResponseBodyToInterface(r)
+	if err != nil {
+		return make(map[string]interface{}), err
+	}
+	return delta.(map[string]interface{}), nil
+}
+
+func bodyToInterface(body io.ReadCloser) (interface{}, error) {
+	var payload interface{}
+	buffer, err := ioutil.ReadAll(body)
+	if err != nil {
+		return nil, err
+	}
+	body.Close()
+	json.Unmarshal(buffer, &payload)
+	return payload, nil
+}
+
+// JustJSONMarshal ...
+func JustJSONMarshal(v interface{}) string {
+	result, err := json.Marshal(v)
+	if err != nil {
+		log.Panic(err)
+	}
+	return string(result)
+}
+
+// InterfaceToString ...
+func InterfaceToString(v interface{}) string {
+	if v != nil {
+		return v.(string)
+	}
+	return ""
+}
+
+// InterfaceArrayToStringArray ...
+func InterfaceArrayToStringArray(t []interface{}) []string {
+	s := make([]string, len(t))
+	for i, v := range t {
+		s[i] = fmt.Sprint(v)
+	}
+	return s
+}
+
+// ParseToDatabaseDate a helper method to parse string to time
+// layout example `02/01/2006`
+func ParseToDatabaseDate(layout string, v string) interface{} {
+	parsedDate, err := time.Parse(layout, strings.TrimSpace(v))
+	if err != nil {
+		return nil
+	}
+	return parsedDate
+}
+
+// ExtractQueryParamAsInt ...
+func ExtractQueryParamAsInt(r *http.Request, name string, defaultValue int) int {
+	s := bone.GetQuery(r, name)
+	if len(s) > 0 {
+		if tmp, err := strconv.Atoi(s[0]); err == nil {
+			return tmp
+		}
+	}
+	return defaultValue
+}
+
+// ExtractQueryParamAsString ...
+func ExtractQueryParamAsString(r *http.Request, name string, defaultValue string) string {
+	s := bone.GetQuery(r, name)
+	if len(s) > 0 {
+		return s[0]
+	}
+	return defaultValue
 }

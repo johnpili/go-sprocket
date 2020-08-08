@@ -7,7 +7,7 @@ import (
 	"github.com/gorilla/sessions"
 )
 
-//CheckAuthenticatedSession ...
+// CheckAuthenticatedSession ...
 func CheckAuthenticatedSession(next http.HandlerFunc, cookieStore *sessions.CookieStore, cookieName string) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		returnURL := r.RequestURI
