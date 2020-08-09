@@ -103,7 +103,7 @@ func RequestBodyToInterface(r http.Request) (interface{}, error) {
 }
 
 // ResponseBodyToInterface ...
-func ResponseBodyToInterface(r http.Request) (interface{}, error) {
+func ResponseBodyToInterface(r http.Response) (interface{}, error) {
 	return bodyToInterface(r.Body)
 }
 
@@ -117,7 +117,7 @@ func RequestBodyToMap(r http.Request) (map[string]interface{}, error) {
 }
 
 // ResponseBodyToMap ...
-func ResponseBodyToMap(r http.Request) (map[string]interface{}, error) {
+func ResponseBodyToMap(r http.Response) (map[string]interface{}, error) {
 	delta, err := ResponseBodyToInterface(r)
 	if err != nil {
 		return make(map[string]interface{}), err
