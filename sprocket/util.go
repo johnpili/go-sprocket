@@ -4,8 +4,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
@@ -103,9 +101,9 @@ func RequestBodyToInterface(r *http.Request) (interface{}, error) {
 }
 
 // ResponseBodyToInterface ...
-func ResponseBodyToInterface(r *http.Response) (interface{}, error) {
-	return bodyToInterface(r.Body)
-}
+//func ResponseBodyToInterface(r *http.Response) (interface{}, error) {
+//	return bodyToInterface(r.Body)
+//}
 
 // RequestBodyToMap ...
 func RequestBodyToMap(r *http.Request) (map[string]interface{}, error) {
@@ -117,24 +115,13 @@ func RequestBodyToMap(r *http.Request) (map[string]interface{}, error) {
 }
 
 // ResponseBodyToMap ...
-func ResponseBodyToMap(r *http.Response) (map[string]interface{}, error) {
-	delta, err := ResponseBodyToInterface(r)
-	if err != nil {
-		return make(map[string]interface{}), err
-	}
-	return delta.(map[string]interface{}), nil
-}
-
-func bodyToInterface(body io.ReadCloser) (interface{}, error) {
-	var payload interface{}
-	buffer, err := ioutil.ReadAll(body)
-	if err != nil {
-		return nil, err
-	}
-	body.Close()
-	json.Unmarshal(buffer, &payload)
-	return payload, nil
-}
+//func ResponseBodyToMap(r *http.Response) (map[string]interface{}, error) {
+//	delta, err := ResponseBodyToInterface(r)
+//	if err != nil {
+//		return make(map[string]interface{}), err
+//	}
+//	return delta.(map[string]interface{}), nil
+//}
 
 // JustJSONMarshal ...
 func JustJSONMarshal(v interface{}) string {
