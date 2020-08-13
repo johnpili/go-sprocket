@@ -9,14 +9,13 @@ import (
 
 // RestAdapterTestSuite ...
 type RestAdapterTestSuite struct {
-	BaseURL   string
-	Transport *http.Transport
-	Client    *http.Client
-	Headers   map[string]string
+	BaseURL string
+	Client  *http.Client
+	Headers map[string]string
 }
 
 // NewRestAdapterTestSuite ...
-func NewRestAdapterTestSuite(baseURL string, tr *http.Transport, headers map[string]string) *RestAdapterTestSuite {
+func NewRestAdapterTestSuite(baseURL string, client *http.Client, headers map[string]string) *RestAdapterTestSuite {
 	h := make(map[string]string)
 	h["Accept"] = "application/json;charset=UTF-8"
 	h["Content-Type"] = "application/json"
@@ -28,9 +27,9 @@ func NewRestAdapterTestSuite(baseURL string, tr *http.Transport, headers map[str
 	}
 
 	newRestAdapterTestSuite := &RestAdapterTestSuite{
-		BaseURL:   baseURL,
-		Transport: tr,
-		Headers:   h,
+		BaseURL: baseURL,
+		Client:  client,
+		Headers: h,
 	}
 	return newRestAdapterTestSuite
 }
