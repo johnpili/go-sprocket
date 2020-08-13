@@ -96,9 +96,9 @@ func RowsScanWrap(r *sql.Rows, dest ...interface{}) error {
 }
 
 // RequestBodyToInterface ...
-func RequestBodyToInterface(r *http.Request) (interface{}, error) {
-	return bodyToInterface(r.Body)
-}
+//func RequestBodyToInterface(r *http.Request) (interface{}, error) {
+//	return bodyToInterface(r.Body)
+//}
 
 // ResponseBodyToInterface ...
 //func ResponseBodyToInterface(r *http.Response) (interface{}, error) {
@@ -106,13 +106,13 @@ func RequestBodyToInterface(r *http.Request) (interface{}, error) {
 //}
 
 // RequestBodyToMap ...
-func RequestBodyToMap(r *http.Request) (map[string]interface{}, error) {
-	delta, err := RequestBodyToInterface(r)
-	if err != nil {
-		return make(map[string]interface{}), err
-	}
-	return delta.(map[string]interface{}), nil
-}
+//func RequestBodyToMap(r *http.Request) (map[string]interface{}, error) {
+//	delta, err := RequestBodyToInterface(r)
+//	if err != nil {
+//		return make(map[string]interface{}), err
+//	}
+//	return delta.(map[string]interface{}), nil
+//}
 
 // ResponseBodyToMap ...
 //func ResponseBodyToMap(r *http.Response) (map[string]interface{}, error) {
