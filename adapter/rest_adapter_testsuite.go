@@ -51,7 +51,7 @@ func (z *RestAdapterTestSuite) ZGet(url string, requiredStatusCode int) (interfa
 
 // ZDelete ...
 func (z *RestAdapterTestSuite) ZDelete(url string, requiredStatusCode int) (interface{}, error) {
-	return z.httpSender(http.MethodGet, url, nil, requiredStatusCode)
+	return z.httpSender(http.MethodDelete, url, nil, requiredStatusCode)
 }
 
 // ZUpsert ...

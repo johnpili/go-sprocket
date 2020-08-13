@@ -54,7 +54,7 @@ func (z *RestAdapter) ZGet(url string) (interface{}, error) {
 
 // ZDelete ...
 func (z *RestAdapter) ZDelete(url string) (interface{}, error) {
-	return z.httpSender(http.MethodGet, url, nil)
+	return z.httpSender(http.MethodDelete, url, nil)
 }
 
 // ZUpsert ...
