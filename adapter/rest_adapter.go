@@ -10,46 +10,57 @@ import (
 	"net/http"
 )
 
-var ()
-
 // RestAdapter ...
 type RestAdapter struct {
-	baseURL   string
-	transport *http.Transport
-	client    *http.Client
+	BaseURL   string
+	Transport *http.Transport
+	Client    *http.Client
+	Headers   map[string]string
 }
 
 // NewRestAdapter ...
-func NewRestAdapter(baseURL string, tr *http.Transport) *RestAdapter {
+func NewRestAdapter(baseURL string, tr *http.Transport, headers map[string]string) *RestAdapter {
+	h := make(map[string]string)
+	h["Accept"] = "application/json;charset=UTF-8"
+	h["Content-Type"] = "application/json"
+
+	if headers != nil && len(headers) > 0 {
+		for k, v := range headers {
+			h[k] = v
+		}
+	}
+
 	newRestAdapter := &RestAdapter{
-		baseURL:   baseURL,
-		transport: tr}
+		BaseURL:   baseURL,
+		Transport: tr,
+		Headers:   h,
+	}
 	return newRestAdapter
 }
 
 // ZPost ...
 func (z *RestAdapter) ZPost(url string, payload interface{}) (interface{}, error) {
-	return z.pppSender(http.MethodPost, url, payload)
+	return z.httpSender(http.MethodPost, url, payload)
 }
 
 // ZPut ...
 func (z *RestAdapter) ZPut(url string, payload interface{}) (interface{}, error) {
-	return z.pppSender(http.MethodPut, url, payload)
+	return z.httpSender(http.MethodPut, url, payload)
 }
 
 // ZGet ...
 func (z *RestAdapter) ZGet(url string) (interface{}, error) {
-	return nil, errors.New("Not implemented")
+	return z.httpSender(http.MethodGet, url, nil)
 }
 
 // ZDelete ...
 func (z *RestAdapter) ZDelete(url string) (interface{}, error) {
-	return nil, errors.New("Not implemented")
+	return z.httpSender(http.MethodGet, url, nil)
 }
 
 // ZUpsert ...
 func (z *RestAdapter) ZUpsert(url string, payload interface{}) (interface{}, error) {
-	return z.pppSender(http.MethodPost, url, payload)
+	return z.httpSender(http.MethodPost, url, payload)
 }
 
 // ZGetOne ...
@@ -67,38 +78,48 @@ func (z *RestAdapter) ZExecute() error {
 	return errors.New("Not implemented")
 }
 
-func (z *RestAdapter) pppSender(httpMethod string, url string, payload interface{}) (interface{}, error) {
-	b, err := json.MarshalIndent(payload, "", "    ")
+func (z *RestAdapter) httpSender(httpMethod string, url string, payload interface{}) (interface{}, error) {
+	var err error
+	var b []byte
+	b = nil
+
+	if payload != nil {
+		b, err = json.MarshalIndent(payload, "", "    ")
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	req, err := http.NewRequest(httpMethod, fmt.Sprintf("%s%s", z.BaseURL, url), bytes.NewBuffer(b))
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest(httpMethod, fmt.Sprintf("%s%s", z.baseURL, url), bytes.NewBuffer(b))
+	response, err := z.Client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 
-	response, err := z.client.Do(req)
-	if err != nil {
-		return nil, err
+	if response.StatusCode < 200 && response.StatusCode > 299 {
+		tmp, err := readResponseBody(response)
+		if err == nil {
+			return tmp, fmt.Errorf("None 200 HTTP response code; got %d", response.StatusCode)
+		}
+		return nil, fmt.Errorf("None 200 HTTP response code; got %d", response.StatusCode)
 	}
 
-	if response.StatusCode >= 200 && response.StatusCode <= 299 {
-		return nil, fmt.Errorf("None 200 HTTP response code; got %s", response.StatusCode)
-	}
-
-	return z.readResponseBody(response)
+	return readResponseBody(response)
 }
 
-func (z *RestAdapter) readResponseBody(response *http.Response) (interface{}, error) {
-	return z.bodyReader(response.Body)
+func readResponseBody(response *http.Response) (interface{}, error) {
+	return bodyReader(response.Body)
 }
 
-func (z *RestAdapter) readRequestBody(request *http.Request) (interface{}, error) {
-	return z.bodyReader(request.Body)
+func readRequestBody(request *http.Request) (interface{}, error) {
+	return bodyReader(request.Body)
 }
 
-func (z *RestAdapter) bodyReader(body io.ReadCloser) (interface{}, error) {
+func bodyReader(body io.ReadCloser) (interface{}, error) {
 	rawBytes, err := ioutil.ReadAll(body)
 	defer body.Close()
 	if err != nil {
