@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"text/template"
@@ -14,6 +15,7 @@ import (
 	rice "github.com/GeertJohan/go.rice"
 	"github.com/go-zoo/bone"
 	"github.com/jmoiron/sqlx"
+	"gopkg.in/yaml.v2"
 )
 
 // GetTemplate ...
@@ -95,34 +97,6 @@ func RowsScanWrap(r *sql.Rows, dest ...interface{}) error {
 	return r.Scan(dest...)
 }
 
-// RequestBodyToInterface ...
-//func RequestBodyToInterface(r *http.Request) (interface{}, error) {
-//	return bodyToInterface(r.Body)
-//}
-
-// ResponseBodyToInterface ...
-//func ResponseBodyToInterface(r *http.Response) (interface{}, error) {
-//	return bodyToInterface(r.Body)
-//}
-
-// RequestBodyToMap ...
-//func RequestBodyToMap(r *http.Request) (map[string]interface{}, error) {
-//	delta, err := RequestBodyToInterface(r)
-//	if err != nil {
-//		return make(map[string]interface{}), err
-//	}
-//	return delta.(map[string]interface{}), nil
-//}
-
-// ResponseBodyToMap ...
-//func ResponseBodyToMap(r *http.Response) (map[string]interface{}, error) {
-//	delta, err := ResponseBodyToInterface(r)
-//	if err != nil {
-//		return make(map[string]interface{}), err
-//	}
-//	return delta.(map[string]interface{}), nil
-//}
-
 // JustJSONMarshal ...
 func JustJSONMarshal(v interface{}) string {
 	result, err := json.Marshal(v)
@@ -177,4 +151,70 @@ func ExtractQueryParamAsString(r *http.Request, name string, defaultValue string
 		return s[0]
 	}
 	return defaultValue
+}
+
+// MetaValueStringExtractor ...
+func MetaValueStringExtractor(v interface{}) string {
+	if v != nil {
+		return v.(string)
+	}
+	return ""
+}
+
+// LoadYAML used to load config.yml into the program
+func LoadYAML(filename string, configuration interface{}) error {
+	file, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+
+	decoder := yaml.NewDecoder(file)
+	err = decoder.Decode(configuration)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// RespondOkayJSON ...
+func RespondOkayJSON(w http.ResponseWriter, payload interface{}) {
+	RespondStatusCodeWithJSON(w, http.StatusOK, payload)
+}
+
+// RespondInternalServerError ...
+func RespondInternalServerError(w http.ResponseWriter, payload interface{}) {
+	RespondStatusCodeWithJSON(w, http.StatusInternalServerError, payload)
+}
+
+// RespondNotImplementedJSON ...
+func RespondNotImplementedJSON(w http.ResponseWriter, payload interface{}) {
+	RespondStatusCodeWithJSON(w, http.StatusNotImplemented, payload)
+}
+
+// RespondNotFoundJSON ...
+func RespondNotFoundJSON(w http.ResponseWriter, payload interface{}) {
+	RespondStatusCodeWithJSON(w, http.StatusNotFound, payload)
+}
+
+// RespondBadRequestJSON ...
+func RespondBadRequestJSON(w http.ResponseWriter, payload interface{}) {
+	RespondStatusCodeWithJSON(w, http.StatusBadRequest, payload)
+}
+
+// RespondStatusCodeWithJSON ...
+func RespondStatusCodeWithJSON(w http.ResponseWriter, statusCode int, payload interface{}) {
+	response, err := json.Marshal(payload)
+	w.Header().Set("Content-Type", "application/json;charset=UTF-8")
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		crashPayload := []byte(`{
+			"success": false,
+			"result": null,
+			"errors": ["` + fmt.Sprintf("%s", err.Error()) + `"]
+		}`)
+		w.Write(crashPayload)
+		return
+	}
+	w.WriteHeader(statusCode)
+	w.Write(response)
 }

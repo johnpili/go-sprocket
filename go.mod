@@ -8,4 +8,5 @@ require (
 	github.com/gorilla/sessions v1.2.0
 	github.com/jmoiron/sqlx v1.2.0
 	google.golang.org/appengine v1.6.6 // indirect
+	gopkg.in/yaml.v2 v2.3.0
 )
