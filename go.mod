@@ -1,9 +1,10 @@
 module github.com/psi-incontrol/go-sprocket
 
-go 1.14
+go 1.15
 
 require (
 	github.com/GeertJohan/go.rice v1.0.0
+	github.com/go-sql-driver/mysql v1.4.0
 	github.com/go-zoo/bone v1.3.0
 	github.com/gorilla/sessions v1.2.0
 	github.com/jmoiron/sqlx v1.2.0
