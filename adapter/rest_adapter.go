@@ -100,7 +100,7 @@ func (z *RestAdapter) httpSender(httpMethod string, url string, payload interfac
 
 	response, err := z.Client.Do(req)
 	if err != nil {
-		return response.StatusCode, nil, err
+		return http.StatusInternalServerError, nil, err
 	}
 
 	/*if response.StatusCode < 200 || response.StatusCode > 299 {
