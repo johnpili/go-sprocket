@@ -38,12 +38,12 @@ func NewRestAdapter(baseURL string, client *http.Client, headers map[string]stri
 }
 
 // ZPost ...
-func (z *RestAdapter) ZPost(url string, payload interface{}) (int, interface{}, error) {
+func (z *RestAdapter) ZPost(url string, payload interface{}) (int, []byte, error) {
 	return z.httpSender(http.MethodPost, url, payload)
 }
 
 // ZPut ...
-func (z *RestAdapter) ZPut(url string, payload interface{}) (int, interface{}, error) {
+func (z *RestAdapter) ZPut(url string, payload interface{}) (int, []byte, error) {
 	return z.httpSender(http.MethodPut, url, payload)
 }
 
@@ -58,17 +58,17 @@ func (z *RestAdapter) ZDelete(url string) (int, interface{}, error) {
 }
 
 // ZUpsert ...
-func (z *RestAdapter) ZUpsert(url string, payload interface{}) (int, interface{}, error) {
+func (z *RestAdapter) ZUpsert(url string, payload interface{}) (int, []byte, error) {
 	return z.httpSender(http.MethodPost, url, payload)
 }
 
 // ZGetOne ...
-func (z *RestAdapter) ZGetOne() (int, interface{}, error) {
+func (z *RestAdapter) ZGetOne() (int, []byte, error) {
 	return http.StatusNotImplemented, nil, errors.New("Not implemented")
 }
 
 // ZGetMany ...
-func (z *RestAdapter) ZGetMany() (int, interface{}, error) {
+func (z *RestAdapter) ZGetMany() (int, []byte, error) {
 	return http.StatusNotImplemented, nil, errors.New("Not implemented")
 }
 
@@ -81,7 +81,7 @@ func (z *RestAdapter) ZExecute() (int, error) {
 //func (z *RestAdapter) ExtractResponsePayload(payload interface{}) (*api.ResponsePayload, error) {
 //}
 
-func (z *RestAdapter) httpSender(httpMethod string, url string, payload interface{}) (int, interface{}, error) {
+func (z *RestAdapter) httpSender(httpMethod string, url string, payload interface{}) (int, []byte, error) {
 	var err error
 	var b []byte
 	b = nil
@@ -115,17 +115,20 @@ func (z *RestAdapter) httpSender(httpMethod string, url string, payload interfac
 	return response.StatusCode, body, err
 }
 
-func readResponseBody(response *http.Response) (interface{}, error) {
+func readResponseBody(response *http.Response) ([]byte, error) {
 	return bodyReader(response.Body)
 }
 
-func readRequestBody(request *http.Request) (interface{}, error) {
+func readRequestBody(request *http.Request) ([]byte, error) {
 	return bodyReader(request.Body)
 }
 
-func bodyReader(body io.ReadCloser) (interface{}, error) {
-	rawBytes, err := ioutil.ReadAll(body)
+func bodyReader(body io.ReadCloser) ([]byte, error) {
 	defer body.Close()
+	return ioutil.ReadAll(body)
+
+	/*rawBytes, err := ioutil.ReadAll(body)
+
 	if err != nil {
 		return nil, err
 	}
@@ -136,5 +139,5 @@ func bodyReader(body io.ReadCloser) (interface{}, error) {
 		return nil, err
 	}
 
-	return buffer, nil
+	return buffer, nil*/
 }
