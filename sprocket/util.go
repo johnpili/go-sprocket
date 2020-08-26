@@ -218,3 +218,14 @@ func RespondStatusCodeWithJSON(w http.ResponseWriter, statusCode int, payload in
 	w.WriteHeader(statusCode)
 	w.Write(response)
 }
+
+// GenerateMySQLTotalCount this is used to generate total records base on the given SQL query for pagination
+func GenerateMySQLTotalCount(sql string) string {
+	upperSQL := strings.ToUpper(sql)
+	upperSQL = strings.ReplaceAll(upperSQL, "\n", " ")
+	indexOfFrom := strings.Index(upperSQL, " FROM ")
+	if indexOfFrom != -1 {
+		return "SELECT COUNT(*) FROM " + strings.ReplaceAll(sql[indexOfFrom+6:], "\n", " ")
+	}
+	return ""
+}
