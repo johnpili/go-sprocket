@@ -2,6 +2,7 @@ package sprocket
 
 import (
 	"database/sql"
+	"embed"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -12,51 +13,18 @@ import (
 	"text/template"
 	"time"
 
-	rice "github.com/GeertJohan/go.rice"
 	"github.com/go-zoo/bone"
 	"github.com/jmoiron/sqlx"
 	"gopkg.in/yaml.v2"
 )
 
-// GetTemplate ...
-func GetTemplate(viewbox *rice.Box, base string, page string) (*template.Template, error) {
-	base, err := viewbox.String(base)
-	if err != nil {
-		return nil, err
-	}
-
-	content, err := viewbox.String(page)
-	if err != nil {
-		return nil, err
-	}
-
-	x, err := template.New("base").Parse(base)
-	if err != nil {
-		return nil, err
-	}
-
-	x.New("content").Parse(content)
-	if err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
 // GetTemplates ...
-func GetTemplates(viewbox *rice.Box, filenames []string) (*template.Template, error) {
-	var x *template.Template
-	for i := 0; i < len(filenames); i++ {
-		tmp, err := viewbox.String(filenames[i])
-		if err != nil {
-			return nil, err
-		}
-		if i == 0 {
-			x, err = template.New("base").Parse(tmp)
-		} else {
-			x.New("content").Parse(tmp)
-		}
+func GetTemplates(viewFS *embed.FS, patterns []string, filenames []string) (*template.Template, error) {
+	templateFS, err := template.ParseFS(viewFS, patterns...)
+	if err != nil {
+		return nil, err
 	}
-	return x, nil
+	return templateFS.New("base").ParseFiles(filenames...)
 }
 
 // TransactionQuery ...
