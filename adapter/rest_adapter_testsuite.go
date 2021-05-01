@@ -35,31 +35,31 @@ func NewRestAdapterTestSuite(baseURL string, client *http.Client, headers map[st
 }
 
 // ZPost ...
-func (z *RestAdapterTestSuite) ZPost(url string, payload interface{}, requiredStatusCode int) ([]byte, error) {
+func (z *RestAdapterTestSuite) ZPost(url string, payload interface{}, requiredStatusCode int) (interface{}, error) {
 	return z.httpSender(http.MethodPost, url, payload, requiredStatusCode)
 }
 
 // ZPut ...
-func (z *RestAdapterTestSuite) ZPut(url string, payload interface{}, requiredStatusCode int) ([]byte, error) {
+func (z *RestAdapterTestSuite) ZPut(url string, payload interface{}, requiredStatusCode int) (interface{}, error) {
 	return z.httpSender(http.MethodPut, url, payload, requiredStatusCode)
 }
 
 // ZGet ...
-func (z *RestAdapterTestSuite) ZGet(url string, requiredStatusCode int) ([]byte, error) {
+func (z *RestAdapterTestSuite) ZGet(url string, requiredStatusCode int) (interface{}, error) {
 	return z.httpSender(http.MethodGet, url, nil, requiredStatusCode)
 }
 
 // ZDelete ...
-func (z *RestAdapterTestSuite) ZDelete(url string, requiredStatusCode int) ([]byte, error) {
+func (z *RestAdapterTestSuite) ZDelete(url string, requiredStatusCode int) (interface{}, error) {
 	return z.httpSender(http.MethodDelete, url, nil, requiredStatusCode)
 }
 
 // ZUpsert ...
-func (z *RestAdapterTestSuite) ZUpsert(url string, payload interface{}, requiredStatusCode int) ([]byte, error) {
+func (z *RestAdapterTestSuite) ZUpsert(url string, payload interface{}, requiredStatusCode int) (interface{}, error) {
 	return z.httpSender(http.MethodPost, url, payload, requiredStatusCode)
 }
 
-func (z *RestAdapterTestSuite) httpSender(httpMethod string, url string, payload interface{}, requiredStatusCode int) ([]byte, error) {
+func (z *RestAdapterTestSuite) httpSender(httpMethod string, url string, payload interface{}, requiredStatusCode int) (interface{}, error) {
 	var err error
 	var b []byte
 	b = nil
@@ -82,12 +82,27 @@ func (z *RestAdapterTestSuite) httpSender(httpMethod string, url string, payload
 	}
 
 	if response.StatusCode != requiredStatusCode {
-		tmp, err := readResponseBody(response)
+		b, err := readResponseBody(response)
 		if err == nil {
-			return tmp, fmt.Errorf("Expecting status code %d; got %d", requiredStatusCode, response.StatusCode)
+			var tmp interface{}
+			err = json.Unmarshal(b, &tmp)
+			if err != nil {
+				return nil, err
+			}
+			return tmp, fmt.Errorf("expecting status code %d; got %d", requiredStatusCode, response.StatusCode)
 		}
-		return nil, fmt.Errorf("Expecting status code %d; got %d", requiredStatusCode, response.StatusCode)
+		return nil, fmt.Errorf("expecting status code %d; got %d", requiredStatusCode, response.StatusCode)
 	}
 
-	return readResponseBody(response)
+	b, err = readResponseBody(response)
+	if err != nil {
+		return nil, err
+	}
+
+	var tmp interface{}
+	err = json.Unmarshal(b, &tmp)
+	if err != nil {
+		return nil, err
+	}
+	return tmp, nil
 }
