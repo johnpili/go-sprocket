@@ -10,9 +10,9 @@ type Page struct {
 	Title             string
 	CSRFToken         string
 	ErrorMessages     []string
-	ErrorMessagesJSON []byte
+	ErrorMessagesJSON string
 	Data              interface{}
-	DataJSON          []byte
+	DataJSON          string
 	Fullname          string
 	Username          string
 	Roles             []string
@@ -44,15 +44,15 @@ func (p *Page) SetData(v interface{}) {
 }
 
 //JSONify ...
-func (p *Page) JSONify() []byte {
+func (p *Page) JSONify() string {
 	p.DataJSON = p.justJSONMarshal(p.Data)
 	return p.justJSONMarshal(p)
 }
 
-func (p *Page) justJSONMarshal(v interface{}) []byte {
+func (p *Page) justJSONMarshal(v interface{}) string {
 	result, err := json.Marshal(v)
 	if err != nil {
 		log.Panic(err)
 	}
-	return result
+	return string(result)
 }
