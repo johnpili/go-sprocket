@@ -10,9 +10,9 @@ type Page struct {
 	Title             string
 	CSRFToken         string
 	ErrorMessages     []string
-	ErrorMessagesJSON string
+	ErrorMessagesJSON []byte
 	Data              interface{}
-	DataJSON          string
+	DataJSON          []byte
 	Fullname          string
 	Username          string
 	Roles             []string
@@ -31,7 +31,7 @@ func (p *Page) AddError(msg string) {
 }
 
 //ResetErrors ...
-func (p *Page) ResetErrors(msg string) {
+func (p *Page) ResetErrors() {
 	p.ErrorMessages = nil
 	p.ErrorMessages = make([]string, 0)
 	p.ErrorMessagesJSON = p.justJSONMarshal(p.ErrorMessages)
@@ -44,15 +44,15 @@ func (p *Page) SetData(v interface{}) {
 }
 
 //JSONify ...
-func (p *Page) JSONify() string {
+func (p *Page) JSONify() []byte {
 	p.DataJSON = p.justJSONMarshal(p.Data)
 	return p.justJSONMarshal(p)
 }
 
-func (p *Page) justJSONMarshal(v interface{}) string {
+func (p *Page) justJSONMarshal(v interface{}) []byte {
 	result, err := json.Marshal(v)
 	if err != nil {
 		log.Panic(err)
 	}
-	return string(result)
+	return result
 }
