@@ -17,6 +17,8 @@ type Page struct {
 	Username          string
 	Roles             []string
 	UIMapData         map[string]interface{}
+
+	BuildVersion string
 }
 
 //New ...
