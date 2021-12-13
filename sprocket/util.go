@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"embed"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -63,6 +64,93 @@ func RowScanWrap(r *sql.Row, dest ...interface{}) error {
 // RowsScanWrap ...
 func RowsScanWrap(r *sql.Rows, dest ...interface{}) error {
 	return r.Scan(dest...)
+}
+
+func NamedQueryRow(db *sqlx.DB, query string, args map[string]interface{}, a func(r *sqlx.Row) (interface{}, error)) (interface{}, error) {
+	return parseRow(readRow(db, query, args), a)
+}
+
+// NamedQueryRows ...
+func NamedQueryRows(db *sqlx.DB, query string, args map[string]interface{}, a func(r *sqlx.Rows) (interface{}, error)) (interface{}, error) {
+	return parseRows(readRows(db, query, args), a)
+}
+
+func readRows(db *sqlx.DB, query string, args map[string]interface{}) *sqlx.Rows {
+	query, nargs, err := sqlx.Named(query, args)
+	if err != nil {
+		return nil
+	}
+
+	query, nargs, err = sqlx.In(query, nargs...)
+	if err != nil {
+		return nil
+	}
+	query = db.Rebind(query)
+
+	rows, err := db.Queryx(query, nargs...)
+	if err != nil {
+		if rows != nil {
+			rows.Close()
+		}
+		return nil
+	}
+	return rows
+}
+
+func readRow(db *sqlx.DB, query string, args map[string]interface{}) *sqlx.Row {
+	query, nargs, err := sqlx.Named(query, args)
+	if err != nil {
+		log.Panic(err)
+		return nil
+	}
+
+	query, nargs, err = sqlx.In(query, nargs...)
+	if err != nil {
+		log.Panic(err)
+		return nil
+	}
+	query = db.Rebind(query)
+
+	return db.QueryRowx(query, nargs...)
+}
+
+func parseRows(rows *sqlx.Rows, a func(r *sqlx.Rows) (interface{}, error)) (interface{}, error) {
+	if rows == nil {
+		return nil, errors.New("rows is nil")
+	}
+	defer rows.Close()
+
+	results := make([]interface{}, 0)
+	for rows.Next() {
+		err := rows.Err()
+		if err != nil {
+			if rows != nil {
+				rows.Close()
+			}
+			return nil, err
+		}
+
+		tmp, err := a(rows)
+		if err != nil {
+			return nil, err
+		}
+		results = append(results, tmp)
+	}
+	if rows != nil {
+		rows.Close()
+	}
+	return results, nil
+}
+
+func parseRow(row *sqlx.Row, a func(r *sqlx.Row) (interface{}, error)) (interface{}, error) {
+	if row == nil {
+		return nil, errors.New("row is nil")
+	}
+	tmp, err := a(row)
+	if err != nil {
+		return nil, err
+	}
+	return tmp, nil
 }
 
 // JustJSONMarshal ...
