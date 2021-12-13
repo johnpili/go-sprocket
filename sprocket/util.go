@@ -106,7 +106,7 @@ func readRow(db *sqlx.DB, query string, args map[string]interface{}) *sql.Row {
 		return nil
 	}
 
-	query, mapargs, _ = sqlx.In(query, mapargs...)
+	query, mapargs, err = sqlx.In(query, mapargs...)
 	if err != nil {
 		log.Panic(err)
 		return nil
