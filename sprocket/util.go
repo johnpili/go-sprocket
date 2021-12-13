@@ -98,19 +98,11 @@ func readRows(db *sqlx.DB, query string, args map[string]interface{}) *sql.Rows 
 }
 
 func readRow(db *sqlx.DB, query string, args map[string]interface{}) *sql.Row {
-	query, nargs, err := sqlx.Named(query, args)
-	if err != nil {
-		log.Panic(err)
-		return nil
-	}
-
-	query, nargs, err = sqlx.In(query, nargs...)
-	if err != nil {
-		log.Panic(err)
-		return nil
-	}
+	query, nargs, _ := sqlx.Named(query, args)
+	log.Println(nargs)
+	query, nargs, _ = sqlx.In(query, nargs...)
+	log.Println(nargs)
 	query = db.Rebind(query)
-
 	return db.QueryRow(query, nargs...)
 }
 
