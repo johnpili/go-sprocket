@@ -76,18 +76,20 @@ func NamedQueryRows(db *sqlx.DB, query string, args map[string]interface{}, a fu
 }
 
 func readRows(db *sqlx.DB, query string, args map[string]interface{}) *sql.Rows {
-	query, nargs, err := sqlx.Named(query, args)
+	query, mapargs, err := sqlx.Named(query, args)
 	if err != nil {
+		log.Panic(err)
 		return nil
 	}
 
-	query, nargs, err = sqlx.In(query, nargs...)
+	query, mapargs, err = sqlx.In(query, mapargs...)
 	if err != nil {
+		log.Panic(err)
 		return nil
 	}
 	query = db.Rebind(query)
 
-	rows, err := db.Query(query, nargs...)
+	rows, err := db.Query(query, mapargs...)
 	if err != nil {
 		if rows != nil {
 			rows.Close()
@@ -98,12 +100,20 @@ func readRows(db *sqlx.DB, query string, args map[string]interface{}) *sql.Rows 
 }
 
 func readRow(db *sqlx.DB, query string, args map[string]interface{}) *sql.Row {
-	query, nargs, _ := sqlx.Named(query, args)
-	log.Println(nargs)
-	query, nargs, _ = sqlx.In(query, nargs...)
-	log.Println(nargs)
+	query, mapargs, err := sqlx.Named(query, args)
+	if err != nil {
+		log.Panic(err)
+		return nil
+	}
+
+	query, mapargs, _ = sqlx.In(query, mapargs...)
+	if err != nil {
+		log.Panic(err)
+		return nil
+	}
+
 	query = db.Rebind(query)
-	return db.QueryRow(query, nargs...)
+	return db.QueryRow(query, mapargs...)
 }
 
 func parseRows(rows *sql.Rows, a func(r *sql.Rows) (interface{}, error)) (interface{}, error) {
