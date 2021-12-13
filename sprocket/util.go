@@ -66,16 +66,16 @@ func RowsScanWrap(r *sql.Rows, dest ...interface{}) error {
 	return r.Scan(dest...)
 }
 
-func NamedQueryRow(db *sqlx.DB, query string, args map[string]interface{}, a func(r *sqlx.Row) (interface{}, error)) (interface{}, error) {
+func NamedQueryRow(db *sqlx.DB, query string, args map[string]interface{}, a func(r *sql.Row) (interface{}, error)) (interface{}, error) {
 	return parseRow(readRow(db, query, args), a)
 }
 
 // NamedQueryRows ...
-func NamedQueryRows(db *sqlx.DB, query string, args map[string]interface{}, a func(r *sqlx.Rows) (interface{}, error)) (interface{}, error) {
+func NamedQueryRows(db *sqlx.DB, query string, args map[string]interface{}, a func(r *sql.Rows) (interface{}, error)) (interface{}, error) {
 	return parseRows(readRows(db, query, args), a)
 }
 
-func readRows(db *sqlx.DB, query string, args map[string]interface{}) *sqlx.Rows {
+func readRows(db *sqlx.DB, query string, args map[string]interface{}) *sql.Rows {
 	query, nargs, err := sqlx.Named(query, args)
 	if err != nil {
 		return nil
@@ -87,7 +87,7 @@ func readRows(db *sqlx.DB, query string, args map[string]interface{}) *sqlx.Rows
 	}
 	query = db.Rebind(query)
 
-	rows, err := db.Queryx(query, nargs...)
+	rows, err := db.Query(query, nargs...)
 	if err != nil {
 		if rows != nil {
 			rows.Close()
@@ -97,7 +97,7 @@ func readRows(db *sqlx.DB, query string, args map[string]interface{}) *sqlx.Rows
 	return rows
 }
 
-func readRow(db *sqlx.DB, query string, args map[string]interface{}) *sqlx.Row {
+func readRow(db *sqlx.DB, query string, args map[string]interface{}) *sql.Row {
 	query, nargs, err := sqlx.Named(query, args)
 	if err != nil {
 		log.Panic(err)
@@ -111,10 +111,10 @@ func readRow(db *sqlx.DB, query string, args map[string]interface{}) *sqlx.Row {
 	}
 	query = db.Rebind(query)
 
-	return db.QueryRowx(query, nargs...)
+	return db.QueryRow(query, nargs...)
 }
 
-func parseRows(rows *sqlx.Rows, a func(r *sqlx.Rows) (interface{}, error)) (interface{}, error) {
+func parseRows(rows *sql.Rows, a func(r *sql.Rows) (interface{}, error)) (interface{}, error) {
 	if rows == nil {
 		return nil, errors.New("rows is nil")
 	}
@@ -142,7 +142,7 @@ func parseRows(rows *sqlx.Rows, a func(r *sqlx.Rows) (interface{}, error)) (inte
 	return results, nil
 }
 
-func parseRow(row *sqlx.Row, a func(r *sqlx.Row) (interface{}, error)) (interface{}, error) {
+func parseRow(row *sql.Row, a func(r *sql.Row) (interface{}, error)) (interface{}, error) {
 	if row == nil {
 		return nil, errors.New("row is nil")
 	}
